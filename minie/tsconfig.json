@@ -1,0 +1,33 @@
+{
+  // 编译器选项 
+  "compilerOptions": {
+    // 指定 TypeScript 代码编译成哪个 ECMAScript (JavaScript) 版本
+    "target": "ES2020",
+    // 指定编译后的 JavaScript 代码使用的模块化规范。
+    "module": "ESNext",
+    // 指定 TypeScript 编译器如何查找模块文件（模块解析策略）。
+    "moduleResolution": "Node",
+    // 启用所有严格类型检查选项。
+    "strict": true,
+    // 指定 JSX 语法如何在编译后输出。
+    "jsx": "preserve",
+    // 生成 Source Map 文件。
+    "sourceMap": true,
+    // 允许从 .json 文件中导入模块。
+    "resolveJsonModule": true,
+    // 启用 CommonJS 和 ES 模块之间的互操作性
+    "esModuleInterop": true,
+    // 跳过所有声明文件（.d.ts 文件）的类型检查。
+    "skipLibCheck": true,
+    // 指定在编译过程中需要包含的声明文件库。
+    "lib": ["ESNext", "DOM"],
+    // 设置模块导入的基准目录。
+    "baseUrl": ".",
+    "paths": {
+        // 定义别名映射
+        "@core/*": ["./src/*"]
+    }
+  },
+  // 告诉 TypeScript 编译器在类型检查和编译时应该查找哪些文件。
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"]
+}
