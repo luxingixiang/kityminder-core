@@ -21,6 +21,8 @@
     "skipLibCheck": true,
     // 指定在编译过程中需要包含的声明文件库。
     "lib": ["ESNext", "DOM"],
+    // 为 Vitest 提供类型提示
+    "types": ["vitest/globals"],
     // 设置模块导入的基准目录。
     "baseUrl": ".",
     "paths": {
@@ -29,5 +31,12 @@
     }
   },
   // 告诉 TypeScript 编译器在类型检查和编译时应该查找哪些文件。
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "src/**/*.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts"
+  ]
 }
