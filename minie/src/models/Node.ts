@@ -26,8 +26,19 @@ export class TreeNode {
      * 将子节点挂载到当前节点末尾，自动维护 parent 指针。
      */
     addChild(child: TreeNode) {
+        this.insertChild(child);
+    }
+
+    /**
+     * 在指定位置插入子节点，没有传位置时默认追加到末尾。
+     */
+    insertChild(child: TreeNode, index?: number) {
         child.parent = this;
-        this.children.push(child);
+        if (index === undefined || index < 0 || index > this.children.length) {
+            this.children.push(child);
+        } else {
+            this.children.splice(index, 0, child);
+        }
     }
 
     /**
