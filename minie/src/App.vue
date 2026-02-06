@@ -7,7 +7,29 @@
         观察数据操作是否符合预期。
       </p>
     </header>
-    <TreeVisualizer :tree="tree" :actions="actions" />
+    <section class="panel">
+      <div class="panel-head">
+        <h3>树结构预览</h3>
+        <div class="panel-actions">
+          <button @click="resetDemo">重置示例数据</button>
+          <button @click="handleExport">导出为 JSON</button>
+          <button @click="handleImport">从 JSON 导入</button>
+        </div>
+      </div>
+      <TreeVisualizer :tree="tree" :actions="actions" />
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>JSON 数据（可粘贴 / 编辑后导入）</h3>
+      </div>
+      <textarea
+        v-model="jsonText"
+        class="json-box"
+        spellcheck="false"
+        rows="14"
+      />
+    </section>
   </main>
 </template>
 
@@ -19,9 +41,11 @@ import TreeVisualizer, {
 } from '@core/components/TreeVisualizer.vue';
 import { TreeStore } from '@core/models/TreeStore';
 import { TreeNode } from '@core/models/Node';
+import { exportToJSON, importFromJSON } from '@core/protocol/json';
 
-const store = buildInitialStore();
+const store = ref<TreeStore>(buildInitialStore());
 const revision = ref(0);
+const jsonText = ref('');
 
 const forceRefresh = () => {
   revision.value += 1;
@@ -29,7 +53,7 @@ const forceRefresh = () => {
 
 const tree = computed<TreeSnapshot>(() => {
   revision.value;
-  return toSnapshot(store.root, {
+  return toSnapshot(store.value.root, {
     isRoot: true,
     index: 0,
     total: 1
@@ -40,13 +64,13 @@ const actions: TreeActions = {
   addChild(parentId) {
     const text = window.prompt('输入新节点的标题', '新节点');
     if (!text) return;
-    store.addNode(parentId, { id: generateNodeId(), text });
+    store.value.addNode(parentId, { id: generateNodeId(), text });
     forceRefresh();
   },
   removeNode(nodeId) {
     if (!window.confirm('删除该节点及其所有子节点？')) return;
     try {
-      store.removeNode(nodeId);
+      store.value.removeNode(nodeId);
       forceRefresh();
     } catch (error) {
       window.alert((error as Error).message);
@@ -61,7 +85,7 @@ const actions: TreeActions = {
 };
 
 function moveWithinParent(nodeId: string, offset: number) {
-  const node = store.getNode(nodeId);
+  const node = store.value.getNode(nodeId);
   if (!node || !node.parent) return;
   const siblings = node.parent.children;
   const currentIndex = siblings.indexOf(node);
@@ -114,6 +138,30 @@ function generateNodeId() {
   seq += 1;
   return `node-${Date.now()}-${seq}`;
 }
+
+function handleExport() {
+  jsonText.value = JSON.stringify(exportToJSON(store.value), null, 2);
+}
+
+function handleImport() {
+  if (!jsonText.value.trim()) {
+    window.alert('请输入 JSON 数据');
+    return;
+  }
+  try {
+    const parsed = JSON.parse(jsonText.value);
+    const next = importFromJSON(parsed);
+    store.value = next;
+    forceRefresh();
+  } catch (error) {
+    window.alert((error as Error).message);
+  }
+}
+
+function resetDemo() {
+  store.value = buildInitialStore();
+  forceRefresh();
+}
 </script>
 
 <style scoped>
@@ -138,5 +186,34 @@ function generateNodeId() {
 .hero p {
   margin: 0;
   line-height: 1.6;
+}
+.panel {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-actions button {
+  margin-left: 8px;
+}
+
+.json-box {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
 }
 </style>
