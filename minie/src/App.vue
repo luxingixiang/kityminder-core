@@ -11,6 +11,8 @@
       <div class="panel-head">
         <h3>树结构预览</h3>
         <div class="panel-actions">
+          <button @click="handleUndo" :disabled="!canUndo">撤销</button>
+          <button @click="handleRedo" :disabled="!canRedo">重做</button>
           <button @click="resetDemo">重置示例数据</button>
           <button @click="handleExport">导出为 JSON</button>
           <button @click="handleImport">从 JSON 导入</button>
@@ -34,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import TreeVisualizer, {
   type TreeSnapshot,
   type TreeActions
@@ -42,10 +44,18 @@ import TreeVisualizer, {
 import { TreeStore } from '@core/models/TreeStore';
 import { TreeNode } from '@core/models/Node';
 import { exportToJSON, importFromJSON } from '@core/protocol/json';
+import { HistoryStack } from '@core/commands/history';
+import {
+  createAddNodeCommand,
+  createRemoveNodeCommand,
+  createMoveNodeCommand
+} from '@core/commands/treeCommands';
 
-const store = ref<TreeStore>(buildInitialStore());
+// 使用 shallowRef 保持 TreeStore 实例的原型与方法，避免被深度代理后类型不匹配
+const store = shallowRef<TreeStore>(buildInitialStore());
 const revision = ref(0);
 const jsonText = ref('');
+const history = new HistoryStack();
 
 const forceRefresh = () => {
   revision.value += 1;
@@ -60,17 +70,32 @@ const tree = computed<TreeSnapshot>(() => {
   });
 });
 
+const canUndo = computed(() => {
+  revision.value;
+  return history.canUndo();
+});
+
+const canRedo = computed(() => {
+  revision.value;
+  return history.canRedo();
+});
+
 const actions: TreeActions = {
   addChild(parentId) {
     const text = window.prompt('输入新节点的标题', '新节点');
     if (!text) return;
-    store.value.addNode(parentId, { id: generateNodeId(), text });
+    history.execute(
+      createAddNodeCommand(store.value, parentId, {
+        id: generateNodeId(),
+        text
+      })
+    );
     forceRefresh();
   },
   removeNode(nodeId) {
     if (!window.confirm('删除该节点及其所有子节点？')) return;
     try {
-      store.value.removeNode(nodeId);
+      history.execute(createRemoveNodeCommand(store.value, nodeId));
       forceRefresh();
     } catch (error) {
       window.alert((error as Error).message);
@@ -91,10 +116,9 @@ function moveWithinParent(nodeId: string, offset: number) {
   const currentIndex = siblings.indexOf(node);
   const targetIndex = currentIndex + offset;
   if (targetIndex < 0 || targetIndex >= siblings.length) return;
-  // 先将节点从当前位置移除
-  siblings.splice(currentIndex, 1);
-  // 然后插入到目标位置
-  node.parent.insertChild(node, targetIndex);
+  history.execute(
+    createMoveNodeCommand(store.value, nodeId, node.parent.data.id, targetIndex)
+  );
   forceRefresh();
 }
 
@@ -114,6 +138,7 @@ interface SnapshotCtx {
   total: number;
 }
 
+// 将 TreeNode 转换为可供 TreeVisualizer 使用的快照对象。
 function toSnapshot(node: TreeNode, ctx: SnapshotCtx): TreeSnapshot {
   const { isRoot, index, total } = ctx;
   return {
@@ -152,6 +177,7 @@ function handleImport() {
     const parsed = JSON.parse(jsonText.value);
     const next = importFromJSON(parsed);
     store.value = next;
+    history.clear();
     forceRefresh();
   } catch (error) {
     window.alert((error as Error).message);
@@ -160,6 +186,17 @@ function handleImport() {
 
 function resetDemo() {
   store.value = buildInitialStore();
+  history.clear();
+  forceRefresh();
+}
+
+function handleUndo() {
+  history.undo();
+  forceRefresh();
+}
+
+function handleRedo() {
+  history.redo();
   forceRefresh();
 }
 </script>

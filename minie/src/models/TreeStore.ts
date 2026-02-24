@@ -46,6 +46,24 @@ export class TreeStore {
     }
 
     /**
+     * 将已存在的节点挂载到目标父节点（用于撤销/重做）。
+     */
+    attachNode(parentId: string, node: TreeNode, index?: number) {
+        if (this.getNode(node.data.id)) {
+            throw new Error(`Node id "${node.data.id}" already exists`);
+        }
+        const parent = this.getNodeOrThrow(parentId);
+        if (node === parent) {
+            throw new Error('Cannot attach node into itself');
+        }
+        // 防止将父节点挂载到自己的后代节点中
+        if (this.isDescendant(parent, node)) {
+            throw new Error('Cannot attach parent into its descendant');
+        }
+        parent.insertChild(node, index);
+    }
+
+    /**
      * 将节点移动到新的父节点，可自定义在子节点数组中的位置。
      */
     moveNode(nodeId: string, targetParentId: string, index?: number): TreeNode {
@@ -79,6 +97,9 @@ export class TreeStore {
         }
     }
 
+    /**
+     * 判断 candidate 是否为 potentialAncestor 的后代节点。
+     */
     private isDescendant(candidate: TreeNode, potentialAncestor: TreeNode): boolean {
         let current: TreeNode | null = candidate.parent;
         while (current) {
