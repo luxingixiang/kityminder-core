@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue';
+import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import TreeVisualizer, {
   type TreeSnapshot,
   type TreeActions
@@ -50,12 +50,16 @@ import {
   createRemoveNodeCommand,
   createMoveNodeCommand
 } from '@core/commands/treeCommands';
+import { CommandRegistry } from '@core/commands/registry';
+import { bindShortcuts } from '@core/commands/shortcuts';
 
 // 使用 shallowRef 保持 TreeStore 实例的原型与方法，避免被深度代理后类型不匹配
 const store = shallowRef<TreeStore>(buildInitialStore());
 const revision = ref(0);
 const jsonText = ref('');
 const history = new HistoryStack();
+const commandRegistry = new CommandRegistry();
+let unbindShortcuts: (() => void) | null = null;
 
 const forceRefresh = () => {
   revision.value += 1;
@@ -199,6 +203,29 @@ function handleRedo() {
   history.redo();
   forceRefresh();
 }
+
+function registerCommands() {
+  commandRegistry.register({
+    name: 'undo',
+    handler: handleUndo,
+    shortcuts: ['ctrl+z']
+  });
+  commandRegistry.register({
+    name: 'redo',
+    handler: handleRedo,
+    shortcuts: ['ctrl+y', 'ctrl+shift+z']
+  });
+}
+
+onMounted(() => {
+  registerCommands();
+  unbindShortcuts = bindShortcuts(commandRegistry, window);
+});
+
+onUnmounted(() => {
+  unbindShortcuts?.();
+  unbindShortcuts = null;
+});
 </script>
 
 <style scoped>
