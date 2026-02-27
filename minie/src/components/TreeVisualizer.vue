@@ -34,6 +34,7 @@ export interface TreeActions {
   moveDown(nodeId: string): void;
   selectNode(nodeId: string): void;
   editNode(nodeId: string): void;
+  focusNode(nodeId: string): void;
 }
 
 defineProps<{ tree: TreeSnapshot; actions: TreeActions }>();

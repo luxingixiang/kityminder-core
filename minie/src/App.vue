@@ -53,6 +53,7 @@ import {
 } from '@core/commands/treeCommands';
 import { CommandRegistry } from '@core/commands/registry';
 import { bindShortcuts } from '@core/commands/shortcuts';
+import { navigate } from '@core/commands/navigation';
 
 // 使用 shallowRef 保持 TreeStore 实例的原型与方法，避免被深度代理后类型不匹配
 const store = shallowRef<TreeStore>(buildInitialStore());
@@ -118,6 +119,9 @@ const actions: TreeActions = {
   },
   editNode(nodeId) {
     handleEditNode(nodeId);
+  },
+  focusNode(nodeId) {
+    selectedId.value = nodeId;
   }
 };
 
@@ -231,6 +235,12 @@ function handleDeleteSelected() {
   forceRefresh();
 }
 
+function handleNavigate(dir: 'up' | 'down' | 'left' | 'right') {
+  const nextId = navigate(store.value, selectedId.value, dir);
+  selectedId.value = nextId;
+  forceRefresh();
+}
+
 function registerCommands() {
   commandRegistry.register({
     name: 'undo',
@@ -251,6 +261,26 @@ function registerCommands() {
     name: 'delete-node',
     handler: handleDeleteSelected,
     shortcuts: ['delete', 'backspace']
+  });
+  commandRegistry.register({
+    name: 'nav-up',
+    handler: () => handleNavigate('up'),
+    shortcuts: ['arrowup']
+  });
+  commandRegistry.register({
+    name: 'nav-down',
+    handler: () => handleNavigate('down'),
+    shortcuts: ['arrowdown']
+  });
+  commandRegistry.register({
+    name: 'nav-left',
+    handler: () => handleNavigate('left'),
+    shortcuts: ['arrowleft']
+  });
+  commandRegistry.register({
+    name: 'nav-right',
+    handler: () => handleNavigate('right'),
+    shortcuts: ['arrowright']
   });
 }
 
