@@ -83,6 +83,14 @@ export class TreeStore {
         return node;
     }
 
+    /**
+     * 更新节点文本。
+     */
+    updateNodeText(nodeId: string, text: string) {
+        const node = this.getNodeOrThrow(nodeId);
+        node.data.text = text;
+    }
+
     private getNodeOrThrow(id: string): TreeNode {
         const node = this.getNode(id);
         if (!node) {

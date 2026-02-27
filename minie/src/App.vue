@@ -48,7 +48,8 @@ import { HistoryStack } from '@core/commands/history';
 import {
   createAddNodeCommand,
   createRemoveNodeCommand,
-  createMoveNodeCommand
+  createMoveNodeCommand,
+  createUpdateNodeTextCommand
 } from '@core/commands/treeCommands';
 import { CommandRegistry } from '@core/commands/registry';
 import { bindShortcuts } from '@core/commands/shortcuts';
@@ -60,6 +61,7 @@ const jsonText = ref('');
 const history = new HistoryStack();
 const commandRegistry = new CommandRegistry();
 let unbindShortcuts: (() => void) | null = null;
+const selectedId = ref<string>('root');
 
 const forceRefresh = () => {
   revision.value += 1;
@@ -110,6 +112,12 @@ const actions: TreeActions = {
   },
   moveDown(nodeId) {
     moveWithinParent(nodeId, 1);
+  },
+  selectNode(nodeId) {
+    selectedId.value = nodeId;
+  },
+  editNode(nodeId) {
+    handleEditNode(nodeId);
   }
 };
 
@@ -149,6 +157,7 @@ function toSnapshot(node: TreeNode, ctx: SnapshotCtx): TreeSnapshot {
     id: node.data.id,
     text: node.data.text ?? node.data.id,
     isRoot,
+    isSelected: node.data.id === selectedId.value,
     canRemove: !isRoot,
     canMoveUp: !isRoot && index > 0,
     canMoveDown: !isRoot && index < total - 1,
@@ -191,6 +200,7 @@ function handleImport() {
 function resetDemo() {
   store.value = buildInitialStore();
   history.clear();
+  selectedId.value = 'root';
   forceRefresh();
 }
 
@@ -204,6 +214,23 @@ function handleRedo() {
   forceRefresh();
 }
 
+function handleEditNode(nodeId: string) {
+  const node = store.value.getNode(nodeId);
+  if (!node) return;
+  const nextText = window.prompt('编辑节点文本', node.data.text ?? node.data.id);
+  if (nextText === null) return;
+  history.execute(createUpdateNodeTextCommand(store.value, nodeId, nextText));
+  forceRefresh();
+}
+
+function handleDeleteSelected() {
+  if (!selectedId.value || selectedId.value === store.value.root.data.id) return;
+  if (!window.confirm('删除选中节点及其所有子节点？')) return;
+  history.execute(createRemoveNodeCommand(store.value, selectedId.value));
+  selectedId.value = store.value.root.data.id;
+  forceRefresh();
+}
+
 function registerCommands() {
   commandRegistry.register({
     name: 'undo',
@@ -214,6 +241,16 @@ function registerCommands() {
     name: 'redo',
     handler: handleRedo,
     shortcuts: ['ctrl+y', 'ctrl+shift+z']
+  });
+  commandRegistry.register({
+    name: 'edit-node',
+    handler: () => handleEditNode(selectedId.value),
+    shortcuts: ['enter']
+  });
+  commandRegistry.register({
+    name: 'delete-node',
+    handler: handleDeleteSelected,
+    shortcuts: ['delete', 'backspace']
   });
 }
 

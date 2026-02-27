@@ -21,6 +21,7 @@ export interface TreeSnapshot {
   text: string;
   children: TreeSnapshot[];
   isRoot: boolean;
+  isSelected: boolean;
   canRemove: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -31,6 +32,8 @@ export interface TreeActions {
   removeNode(nodeId: string): void;
   moveUp(nodeId: string): void;
   moveDown(nodeId: string): void;
+  selectNode(nodeId: string): void;
+  editNode(nodeId: string): void;
 }
 
 defineProps<{ tree: TreeSnapshot; actions: TreeActions }>();

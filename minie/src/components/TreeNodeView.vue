@@ -2,7 +2,10 @@
   <li>
     <div
       class="node-row"
+      :class="{ selected: node.isSelected }"
       :style="{ marginLeft: depth * 20 + 'px' }"
+      @click="actions.selectNode(node.id)"
+      @dblclick="actions.editNode(node.id)"
     >
       <div class="node-chip">
         <span class="node-title">{{ node.text }}</span>
@@ -52,6 +55,12 @@ defineProps<{
   align-items: center;
   gap: 8px;
   padding: 6px 0;
+  cursor: pointer;
+}
+
+.node-row.selected .node-chip {
+  background: #dbeafe;
+  border: 1px solid #60a5fa;
 }
 
 .node-chip {

@@ -73,3 +73,25 @@ export function createMoveNodeCommand(
         }
     };
 }
+
+export function createUpdateNodeTextCommand(
+    store: TreeStore,
+    nodeId: string,
+    nextText: string
+): Command {
+    let prevText = '';
+    return {
+        name: 'update-node-text',
+        execute() {
+            const node = store.getNode(nodeId);
+            if (!node) {
+                throw new Error(`Node "${nodeId}" not found`);
+            }
+            prevText = node.data.text ?? '';
+            store.updateNodeText(nodeId, nextText);
+        },
+        undo() {
+            store.updateNodeText(nodeId, prevText);
+        }
+    };
+}

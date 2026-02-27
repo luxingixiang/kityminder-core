@@ -4,7 +4,8 @@ import { HistoryStack } from '@core/commands/history';
 import {
     createAddNodeCommand,
     createRemoveNodeCommand,
-    createMoveNodeCommand
+    createMoveNodeCommand,
+    createUpdateNodeTextCommand
 } from '@core/commands/treeCommands';
 
 describe('tree commands', () => {
@@ -53,5 +54,20 @@ describe('tree commands', () => {
 
         history.redo();
         expect(store.getNode('A-1')?.parent?.data.id).toBe('B');
+    });
+
+    it('supports update text undo redo', () => {
+        const store = new TreeStore({ id: 'root', text: 'Root' });
+        store.addNode('root', { id: 'A', text: 'Old' });
+        const history = new HistoryStack();
+
+        history.execute(createUpdateNodeTextCommand(store, 'A', 'New'));
+        expect(store.getNode('A')?.data.text).toBe('New');
+
+        history.undo();
+        expect(store.getNode('A')?.data.text).toBe('Old');
+
+        history.redo();
+        expect(store.getNode('A')?.data.text).toBe('New');
     });
 });
