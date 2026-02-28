@@ -243,6 +243,33 @@ function handleDeleteSelected() {
 }
 
 function handleNavigate(dir: 'up' | 'down' | 'left' | 'right') {
+  const node = store.value.getNode(selectedId.value);
+  if (!node) return;
+
+  if (dir === 'left') {
+    // 优先收起当前节点，否则移动到父节点
+    if (node.children.length && node.data.collapsed !== true) {
+      actions.toggleCollapse(node.data.id);
+      return;
+    }
+    const nextId = navigate(store.value, selectedId.value, dir);
+    selectedId.value = nextId;
+    forceRefresh();
+    return;
+  }
+
+  if (dir === 'right') {
+    // 优先展开当前节点，否则进入第一个子节点
+    if (node.data.collapsed) {
+      actions.toggleCollapse(node.data.id);
+      return;
+    }
+    const nextId = navigate(store.value, selectedId.value, dir);
+    selectedId.value = nextId;
+    forceRefresh();
+    return;
+  }
+
   const nextId = navigate(store.value, selectedId.value, dir);
   selectedId.value = nextId;
   forceRefresh();
