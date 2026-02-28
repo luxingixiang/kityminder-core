@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CommandRegistry, normalizeShortcut } from '@core/commands/registry';
+import { CommandRegistry, normalizeShortcut, eventToShortcut } from '@core/commands/registry';
 
 describe('CommandRegistry', () => {
     it('normalizes shortcuts consistently', () => {
@@ -19,5 +19,15 @@ describe('CommandRegistry', () => {
         const handled = registry.executeByShortcut('ctrl+z');
         expect(handled).toBe(true);
         expect(fired).toBe(1);
+    });
+
+    it('maps space key to space shortcut', () => {
+        const shortcut = eventToShortcut({
+            ctrlKey: false,
+            shiftKey: false,
+            altKey: false,
+            key: ' '
+        } as KeyboardEvent);
+        expect(shortcut).toBe('space');
     });
 });

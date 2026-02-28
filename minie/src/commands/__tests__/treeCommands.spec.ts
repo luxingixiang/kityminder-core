@@ -5,7 +5,8 @@ import {
     createAddNodeCommand,
     createRemoveNodeCommand,
     createMoveNodeCommand,
-    createUpdateNodeTextCommand
+    createUpdateNodeTextCommand,
+    createToggleCollapseCommand
 } from '@core/commands/treeCommands';
 
 describe('tree commands', () => {
@@ -69,5 +70,20 @@ describe('tree commands', () => {
 
         history.redo();
         expect(store.getNode('A')?.data.text).toBe('New');
+    });
+
+    it('supports toggle collapse undo redo', () => {
+        const store = new TreeStore({ id: 'root' });
+        store.addNode('root', { id: 'A' });
+        const history = new HistoryStack();
+
+        history.execute(createToggleCollapseCommand(store, 'A', true));
+        expect(store.getNode('A')?.data.collapsed).toBe(true);
+
+        history.undo();
+        expect(store.getNode('A')?.data.collapsed).toBe(false);
+
+        history.redo();
+        expect(store.getNode('A')?.data.collapsed).toBe(true);
     });
 });

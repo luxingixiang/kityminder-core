@@ -12,6 +12,16 @@
         <span class="node-id">{{ node.id }}</span>
       </div>
       <div class="node-actions">
+        <button
+          v-if="!node.isRoot"
+          class="collapse-btn"
+          type="button"
+          :aria-pressed="node.collapsed === true"
+          :title="node.collapsed ? 'Expand' : 'Collapse'"
+          @click.stop="actions.toggleCollapse(node.id)"
+        >
+          {{ node.collapsed ? '+' : '−' }}
+        </button>
         <button @click="actions.addChild(node.id)">添加子节点</button>
         <button
           @click="actions.moveUp(node.id)"
@@ -27,7 +37,7 @@
         >删除</button>
       </div>
     </div>
-    <ul v-if="node.children.length" class="node-children">
+    <ul v-if="node.children.length && !node.collapsed" class="node-children">
       <TreeNodeView
         v-for="child in node.children"
         :key="child.id"
@@ -82,6 +92,12 @@ defineProps<{
 
 .node-actions button {
   margin-right: 4px;
+}
+
+.collapse-btn {
+  width: 28px;
+  padding: 4px 6px;
+  text-align: center;
 }
 
 .node-children {

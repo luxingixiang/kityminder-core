@@ -50,6 +50,17 @@ export function eventToShortcut(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) parts.push('ctrl');
     if (event.shiftKey) parts.push('shift');
     if (event.altKey) parts.push('alt');
-    parts.push(event.key.toLowerCase());
+    const key = normalizeKey(event.key);
+    if (key) {
+        parts.push(key);
+    }
     return normalizeShortcut(parts.join('+'));
+}
+
+function normalizeKey(key: string) {
+    if (!key) return '';
+    const lower = key.toLowerCase();
+    if (lower === ' ') return 'space';
+    if (lower === 'spacebar') return 'space';
+    return lower.trim();
 }

@@ -95,3 +95,25 @@ export function createUpdateNodeTextCommand(
         }
     };
 }
+
+export function createToggleCollapseCommand(
+    store: TreeStore,
+    nodeId: string,
+    collapsed?: boolean
+): Command {
+    let prev = false;
+    return {
+        name: 'toggle-collapse',
+        execute() {
+            const node = store.getNode(nodeId);
+            if (!node) {
+                throw new Error(`Node "${nodeId}" not found`);
+            }
+            prev = !!node.data.collapsed;
+            store.toggleCollapse(nodeId, collapsed);
+        },
+        undo() {
+            store.toggleCollapse(nodeId, prev);
+        }
+    };
+}

@@ -49,7 +49,8 @@ import {
   createAddNodeCommand,
   createRemoveNodeCommand,
   createMoveNodeCommand,
-  createUpdateNodeTextCommand
+  createUpdateNodeTextCommand,
+  createToggleCollapseCommand
 } from '@core/commands/treeCommands';
 import { CommandRegistry } from '@core/commands/registry';
 import { bindShortcuts } from '@core/commands/shortcuts';
@@ -122,6 +123,11 @@ const actions: TreeActions = {
   },
   focusNode(nodeId) {
     selectedId.value = nodeId;
+  },
+  toggleCollapse(nodeId) {
+    history.execute(createToggleCollapseCommand(store.value, nodeId));
+    selectedId.value = nodeId;
+    forceRefresh();
   }
 };
 
@@ -162,6 +168,7 @@ function toSnapshot(node: TreeNode, ctx: SnapshotCtx): TreeSnapshot {
     text: node.data.text ?? node.data.id,
     isRoot,
     isSelected: node.data.id === selectedId.value,
+    collapsed: !!node.data.collapsed,
     canRemove: !isRoot,
     canMoveUp: !isRoot && index > 0,
     canMoveDown: !isRoot && index < total - 1,
@@ -281,6 +288,11 @@ function registerCommands() {
     name: 'nav-right',
     handler: () => handleNavigate('right'),
     shortcuts: ['arrowright']
+  });
+  commandRegistry.register({
+    name: 'toggle-collapse',
+    handler: () => actions.toggleCollapse(selectedId.value),
+    shortcuts: ['space']
   });
 }
 

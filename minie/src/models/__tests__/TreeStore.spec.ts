@@ -47,4 +47,16 @@ describe('TreeStore', () => {
 
         expect(() => store.moveNode('A', 'A-1')).toThrow();
     });
+
+    it('toggles collapse state with default and explicit values', () => {
+        const store = createStore();
+        store.addNode('root', { id: 'A' });
+
+        expect(store.getNode('A')?.data.collapsed).toBeUndefined();
+        store.toggleCollapse('A');
+        expect(store.getNode('A')?.data.collapsed).toBe(true);
+
+        store.toggleCollapse('A', false);
+        expect(store.getNode('A')?.data.collapsed).toBe(false);
+    });
 });

@@ -22,6 +22,7 @@ export interface TreeSnapshot {
   children: TreeSnapshot[];
   isRoot: boolean;
   isSelected: boolean;
+  collapsed?: boolean;
   canRemove: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -35,6 +36,7 @@ export interface TreeActions {
   selectNode(nodeId: string): void;
   editNode(nodeId: string): void;
   focusNode(nodeId: string): void;
+  toggleCollapse(nodeId: string): void;
 }
 
 defineProps<{ tree: TreeSnapshot; actions: TreeActions }>();

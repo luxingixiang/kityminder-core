@@ -91,6 +91,15 @@ export class TreeStore {
         node.data.text = text;
     }
 
+    /**
+     * 切换节点折叠状态，默认 false（展开）。
+     */
+    toggleCollapse(nodeId: string, collapsed?: boolean) {
+        const node = this.getNodeOrThrow(nodeId);
+        const next = collapsed === undefined ? !node.data.collapsed : collapsed;
+        node.data.collapsed = next;
+    }
+
     private getNodeOrThrow(id: string): TreeNode {
         const node = this.getNode(id);
         if (!node) {

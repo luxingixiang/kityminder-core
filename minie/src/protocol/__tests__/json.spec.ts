@@ -43,4 +43,15 @@ describe('json protocol adapter', () => {
         };
         expect(() => importFromJSON(duplicated)).toThrow(/重复的节点 id/);
     });
+
+    it('preserves collapsed flag through export and import', () => {
+        const store = createStore();
+        store.toggleCollapse('B', true);
+
+        const exported = exportToJSON(store);
+        expect(exported.root.children?.[1].data.collapsed).toBe(true);
+
+        const restored = importFromJSON(exported);
+        expect(restored.getNode('B')?.data.collapsed).toBe(true);
+    });
 });
